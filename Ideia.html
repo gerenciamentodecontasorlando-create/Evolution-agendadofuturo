@@ -1,0 +1,254 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>BTX-Pront</title>
+
+  <link rel="manifest" href="manifest.webmanifest">
+  <meta name="theme-color" content="#0b0f1a" />
+  <link rel="icon" href="assets/icon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+
+<body>
+  <!-- LOGIN -->
+  <div class="login-overlay" id="loginOverlay" aria-hidden="true">
+    <div class="login-card">
+      <div class="login-brand">
+        <span class="brand-mark"></span>
+        <div>
+          <div class="login-title">BTX-Pront</div>
+          <div class="login-sub">Acesso por PIN</div>
+        </div>
+      </div>
+
+      <label for="pinInput">PIN</label>
+      <input id="pinInput" inputmode="numeric" autocomplete="one-time-code" placeholder="BTX007" />
+      <div class="row">
+        <button class="primary" id="btnLogin">Entrar</button>
+        <button class="ghost" id="btnLoginHint">Dica</button>
+      </div>
+      <p class="muted tiny" id="loginMsg"></p>
+    </div>
+  </div>
+
+  <!-- TOPBAR -->
+  <header class="topbar">
+    <div class="brand">
+      <span class="brand-mark"></span>
+      <div class="brand-stack">
+        <div class="brand-name" id="brandName">BTX-Pront</div>
+        <div class="brand-sub" id="brandSub">⬢</div>
+      </div>
+    </div>
+
+    <div class="top-actions">
+      <span class="pill" id="saveState">ok</span>
+      <button class="ghost" id="btnBackup">Backup</button>
+      <button class="ghost" id="btnImport">Importar</button>
+      <button class="ghost" id="btnLock">Travar</button>
+      <input type="file" id="fileImport" accept="application/json" hidden />
+    </div>
+  </header>
+
+  <main class="layout">
+    <!-- ESQUERDA -->
+    <section class="panel">
+      <div class="card">
+        <div class="card-title-row">
+          <h2>Ficha clínica</h2>
+          <span class="muted tiny">autosave</span>
+        </div>
+
+        <div class="field">
+          <label>Paciente</label>
+          <div class="row">
+            <input id="patientName" placeholder="Selecione na agenda ou crie novo" />
+            <button id="btnNewPatient" class="ghost">Novo</button>
+          </div>
+          <small class="muted">Selecione um item na agenda do dia e clique em “Abrir”.</small>
+        </div>
+
+        <div class="grid2">
+          <div class="field">
+            <label>Contato</label>
+            <input id="patientPhone" placeholder="WhatsApp/telefone" />
+          </div>
+          <div class="field">
+            <label>Data de nascimento</label>
+            <input id="patientDob" type="date" />
+          </div>
+        </div>
+
+        <div class="field">
+          <label>Observações / evolução do atendimento</label>
+          <textarea id="clinicalNotes" placeholder="Queixa, exame, conduta, procedimentos, evolução..."></textarea>
+        </div>
+
+        <div class="row">
+          <button class="primary" id="btnSaveEncounter">Salvar atendimento</button>
+          <button class="ghost" id="btnClearEncounter">Limpar</button>
+        </div>
+
+        <hr class="sep" />
+
+        <div class="card mini">
+          <div class="row between">
+            <div>
+              <strong>Ficha do paciente</strong><br />
+              <small class="muted">Histórico de atendimentos</small>
+            </div>
+            <button class="ghost" id="btnRefreshHistory">Atualizar</button>
+          </div>
+
+          <div class="history" id="historyBox">
+            <small class="muted">Selecione um paciente na agenda.</small>
+          </div>
+
+          <div class="row" style="margin-top:10px;">
+            <button class="ghost" id="btnPrintFicha">Imprimir ficha</button>
+          </div>
+        </div>
+
+        <hr class="sep" />
+
+        <div class="card mini">
+          <strong>Receituário inteligente</strong>
+          <div class="chips" id="rxTabs"></div>
+
+          <div class="chips" id="rxChips"></div>
+
+          <div class="field">
+            <textarea id="rxText" placeholder="As prescrições escolhidas aparecem aqui. Você pode editar livremente."></textarea>
+          </div>
+
+          <div class="row">
+            <button class="ghost" id="btnRxClear">Limpar receita</button>
+            <button class="primary" id="btnPrintRx">Imprimir receita</button>
+          </div>
+
+          <small class="muted tiny">
+            Presets são modelos. Ajuste dose/esquema conforme avaliação clínica e condições do paciente.
+          </small>
+        </div>
+
+        <hr class="sep" />
+
+        <div class="card mini">
+          <strong>Documentos</strong>
+          <div class="doc-buttons" style="margin-top:10px;">
+            <button class="ghost" id="btnDocAtestado">Atestado</button>
+            <button class="ghost" id="btnDocRecibo">Recibo</button>
+            <button class="ghost" id="btnDocLaudo">Laudo</button>
+            <button class="ghost" id="btnDocOrcamento">Orçamento</button>
+            <button class="ghost" id="btnDocAgenda">Agenda do dia</button>
+          </div>
+          <small class="muted tiny">
+            PDFs: use “Imprimir → Salvar em PDF”. Bordas preservadas, endereço centralizado, marca discreta.
+          </small>
+        </div>
+      </div>
+    </section>
+
+    <!-- CENTRO -->
+    <section class="panel">
+      <div class="card">
+        <div class="row between">
+          <h2 id="dayTitle">Dia</h2>
+          <div class="row">
+            <button class="ghost" id="btnPrevDay">◀</button>
+            <button class="ghost" id="btnToday">Hoje</button>
+            <button class="ghost" id="btnNextDay">▶</button>
+          </div>
+        </div>
+
+        <div class="row" style="margin-top:8px;">
+          <select id="slotTime" style="max-width:130px;"></select>
+          <input id="searchPatient" placeholder="Buscar paciente (nome/telefone)" />
+          <button class="primary" id="btnAddAppt">Adicionar</button>
+        </div>
+
+        <small class="muted tiny">
+          “Adicionar” cria um item na agenda do dia com paciente existente (busca) ou com os dados do prontuário.
+        </small>
+
+        <ul class="agenda" id="agendaList"></ul>
+      </div>
+    </section>
+
+    <!-- DIREITA -->
+    <section class="panel">
+      <div class="card">
+        <h2>Calendário</h2>
+
+        <div class="row between">
+          <button class="ghost" id="calPrev">◀</button>
+          <strong id="calTitle">Mês</strong>
+          <button class="ghost" id="calNext">▶</button>
+        </div>
+
+        <div class="cal-grid" id="calGrid"></div>
+
+        <div class="field" style="margin-top:12px;">
+          <label>Selecione o dia (rápido)</label>
+          <input id="quickDate" type="date" />
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Dados do profissional</h2>
+
+        <div class="field">
+          <label>Nome</label>
+          <input id="proName" placeholder="ORLANDO ABREU GOMES DA SILVA" />
+        </div>
+
+        <div class="grid2">
+          <div class="field">
+            <label>Registro (CRO/CRM)</label>
+            <input id="proReg" placeholder="CRO-PA 5165" />
+          </div>
+          <div class="field">
+            <label>Telefone</label>
+            <input id="proPhone" placeholder="(91) 99987-3835" />
+          </div>
+        </div>
+
+        <div class="field">
+          <label>Endereço (aparece no rodapé central dos documentos)</label>
+          <input id="proAddress" placeholder="Rua Açores 31, Tapana" />
+        </div>
+
+        <div class="row">
+          <button class="primary" id="btnSavePro">Salvar</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Integração (opcional)</h2>
+        <small class="muted">
+          Se você preencher o servidor, a agenda sincroniza entre recepção/consultório/celular/tablet.
+          Se ficar vazio, o app roda 100% offline/local.
+        </small>
+
+        <div class="field" style="margin-top:10px;">
+          <label>Servidor BTX-Sync (ex: http://192.168.0.10:8080)</label>
+          <input id="syncUrl" placeholder="http://192.168.0.10:8080" />
+        </div>
+
+        <div class="row">
+          <button class="primary" id="btnSaveSync">Salvar</button>
+          <button class="ghost" id="btnTestSync">Testar</button>
+        </div>
+
+        <small class="muted tiny" id="syncMsg"></small>
+      </div>
+    </section>
+  </main>
+
+  <div class="toast" id="toast"></div>
+
+  <script type="module" src="app.js"></script>
+</body>
+</html>
